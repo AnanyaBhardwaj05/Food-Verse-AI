@@ -1,20 +1,83 @@
+
+import os
+import json
+from google import genai
+from google.genai import types
+
+
 def analyze_food_image(image_bytes: bytes) -> dict:
-    # Safe demo behavior: no real image recognition is claimed here.
-    # Add a vision-model provider call here when API credentials are configured.
-    return {
-        "mode": "demo",
-        "food_name": "Food image received",
-        "ingredients": ["Image uploaded successfully"],
-        "nutrition": None,
-        "message": "Demo mode: the image upload works, but a vision AI provider is not configured. Connect a model in this service for real food recognition."
-    }
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        return {
+            "mode": "error",
+            "message": "Gemini API key is missing. Check Render Environment."
+        }
+
+    try:
+        client = genai.Client(api_key=api_key)
+
+        image_part = types.Part.from_bytes(
+            data=image_bytes,
+            mime_type="image/jpeg"
+        )
+
+        response = client.models.generate_content(
+            model="gemini-3.8-flash",
+            contents=[
+                "Identify the food in this image. Return only valid JSON with "
+                "these fields: food_name, ingredients (list), "
+                "nutrition (object containing calories, protein_g, "
+                "carbs_g, fat_g per estimated serving), "
+                "message. Give approximate nutrition values and clearly "
+                "mention that they are estimates. If this is not food, "
+                "identify that clearly.",
+                image_part
+            ],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
+        )
+
+        result = json.loads(response.text)
+
+        return {
+            "mode": "ai",
+            "food_name": result.get("food_name", "Unknown food"),
+            "ingredients": result.get("ingredients", []),
+            "nutrition": result.get("nutrition"),
+            "message": result.get(
+                "message",
+                "AI analysis completed. Nutrition values are estimates."
+            )
+        }
+
+    except Exception as e:
+        print("Gemini image analysis error:", str(e))
+        return {
+            "mode": "error",
+            "message": "Food analysis failed. Please try another image."
+        }
+
 
 def chat_reply(message: str) -> str:
-    q = message.lower()
-    if "calorie" in q or "nutrition" in q:
-        return "I can share approximate nutrition for foods in the demo database. Try asking about idli, dosa, dal, paneer, biryani, apple, or banana."
-    if "recipe" in q or "cook" in q:
-        return "Tell me the ingredients you have, separated by commas, and use the Recipe Finder to see matching ideas."
-    if "healthy" in q:
-        return "A balanced plate often includes vegetables or fruit, a protein source, whole grains, and water. Your needs may vary."
-    return "I'm Food Verse AI in demo mode. I can help explore food, nutrition estimates, and recipe ideas. For live AI answers, configure a provider in the backend."
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        return "Gemini API key is not configured."
+
+    try:
+        client = genai.Client(api_key=api_key)
+
+        response = client.models.generate_content(
+            model="gemini-3.8-flash",
+            contents="You are Food Verse AI, a helpful food and nutrition "
+                     "assistant. Give safe, concise answers. Do not claim "
+                     "medical certainty. User asks: " + message
+        )
+
+        return response.text or "Please try asking again."
+
+    except Exception as e:
+        print("Gemini chat error:", str(e))
+        return "Sorry, the AI assistant is temporarily unavailable."
