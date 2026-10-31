@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Apple, Camera, ChefHat, MessageCircle, Search, Sparkles, Upload, Leaf, ArrowRight, Clock, Flame, Menu, X } from 'lucide-react'
 
-const API = 'https://food-verse-ai-3.onrender.com/api'
+const API = 'https://food-verse-ai-4.onrender.com/api'
 const sections = ['Overview', 'Food Scanner', 'Nutrition', 'Recipe Finder', 'AI Assistant']
 const fallbackNutrition = {idli:{calories:150,protein_g:5,carbs_g:30,fat_g:1.5,fiber_g:2}, dosa:{calories:168,protein_g:4,carbs_g:25,fat_g:6,fiber_g:1.5}, dal:{calories:180,protein_g:11,carbs_g:27,fat_g:4,fiber_g:8}, paneer:{calories:265,protein_g:18,carbs_g:6,fat_g:20,fiber_g:0}, biryani:{calories:350,protein_g:12,carbs_g:48,fat_g:12,fiber_g:3}, apple:{calories:95,protein_g:.5,carbs_g:25,fat_g:.3,fiber_g:4.4}, banana:{calories:105,protein_g:1.3,carbs_g:27,fat_g:.4,fiber_g:3.1}}
 export default function App(){
