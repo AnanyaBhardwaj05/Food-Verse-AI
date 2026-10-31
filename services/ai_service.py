@@ -23,7 +23,7 @@ def analyze_food_image(image_bytes: bytes) -> dict:
         )
 
         response = client.models.generate_content(
-            model="gemini-3.8-flash",
+            model="gemini-3.6-flash",
             contents=[
                 "Identify the food in this image. Return only valid JSON with "
                 "these fields: food_name, ingredients (list), "
